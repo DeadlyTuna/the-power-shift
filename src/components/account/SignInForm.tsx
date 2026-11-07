@@ -8,6 +8,9 @@ import { toast } from "sonner";
 import { emailField } from "@/lib/validation";
 import { SIGN_UP_PATH, authHref, safeNextPath } from "@/lib/demo-auth/next-path";
 import { isRealAuth } from "@/lib/supabase/env";
+import { signInAsDemoStudent } from "@/lib/demo-auth/store";
+import { courseLessons, courses } from "@/content/courses";
+import { Sparkles } from "lucide-react";
 import { Button } from "@/components/ui/Button";
 import { FormAlert, TextField } from "@/components/ui/Field";
 import { PasswordField } from "@/components/ui/PasswordField";
@@ -48,6 +51,30 @@ export function SignInForm() {
       delete nextErrors[name];
       return nextErrors;
     });
+  }
+
+  /** Demo mode only: jump straight into a student with courses already in progress. */
+  function openDemoStudent() {
+    const plan: [string, number][] = [
+      ["speak-up-with-confidence", 7],
+      ["boundaries-without-guilt", 3],
+      ["30-day-power-shift-challenge", 0],
+    ];
+    const seed = plan.flatMap(([slug, completed]) => {
+      const course = courses.find((c) => c.slug === slug);
+      return course ? [{ slug, completed, lessonIds: courseLessons(course).map((l) => l.id) }] : [];
+    });
+    const demo = signInAsDemoStudent(seed);
+    if (!demo) {
+      setFormError({
+        title: "The demo account couldn't open",
+        message: "This browser is blocking site storage. Allow site data for this site and try again.",
+      });
+      return;
+    }
+    setStatus("success");
+    toast.success("Signed in as the demo student");
+    router.replace(next === "/account" ? "/account" : next);
   }
 
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
@@ -125,6 +152,16 @@ export function SignInForm() {
           >
             <AuthHeading id={`${ID}-title`} title={TITLE} intro={INTRO} />
             <DemoNote />
+            {!isRealAuth ? (
+              <div className="flex flex-col gap-2 rounded-xl border border-dashed border-jamun-200 bg-mist/60 p-4">
+                <Button type="button" variant="dark" icon={<Sparkles />} onClick={openDemoStudent}>
+                  Try the demo student account
+                </Button>
+                <p className="text-center text-sm text-muted">
+                  Opens a student who&rsquo;s already enrolled in three courses, so you can look around.
+                </p>
+              </div>
+            ) : null}
 
             <AnimatePresence initial={false}>
               {formError ? (

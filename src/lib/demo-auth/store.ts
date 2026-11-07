@@ -243,3 +243,38 @@ export function setLessonComplete(slug: string, lessonId: string, complete: bool
     }),
   );
 }
+
+/* ---------- One-click demo student (for client walkthroughs) ---------- */
+
+const DEMO_STUDENT_ID = "stu_demo_walkthrough";
+
+/**
+ * Signs in a ready-made demo student who is already enrolled in three mock
+ * courses with some lessons finished, so "My courses" and the lesson player
+ * can be shown without signing up and buying first. Re-running resets it.
+ * Demo mode only; it has no password and can't exist with real accounts.
+ */
+export function signInAsDemoStudent(seed: { slug: string; lessonIds: string[]; completed: number }[]): Student | null {
+  const record: StudentRecord = {
+    id: DEMO_STUDENT_ID,
+    name: "Demo Student",
+    email: "demo.student@example.com",
+    phone: "+919876543210",
+    createdAt: new Date(Date.now() - 1000 * 60 * 60 * 24 * 12).toISOString(),
+    salt: "",
+    passwordHash: "", // no password: this account can only be entered with the demo button
+  };
+  const students = read<StudentRecord[]>(KEYS.students, []).filter((s) => s.id !== DEMO_STUDENT_ID);
+  const all = read<Record<string, Enrollment[]>>(KEYS.enrollments, {});
+  all[DEMO_STUDENT_ID] = seed.map((course, i) => ({
+    slug: course.slug,
+    reference: `DEMO-WALKTHROUGH-${i + 1}`,
+    enrolledAt: new Date(Date.now() - 1000 * 60 * 60 * 24 * (10 - i * 3)).toISOString(),
+    completedLessons: course.lessonIds.slice(0, course.completed),
+  }));
+  if (!write(KEYS.students, [...students, record]) || !write(KEYS.enrollments, all) || !write(KEYS.session, { studentId: DEMO_STUDENT_ID })) {
+    return null;
+  }
+  refresh();
+  return publicStudent(record);
+}
