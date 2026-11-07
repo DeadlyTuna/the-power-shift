@@ -1,4 +1,6 @@
+import { getProgram } from "@/content/programs";
 import { recordSubmission } from "@/lib/leads";
+import { grantEnrollment } from "@/lib/supabase/server";
 import { verifyWebhookSignature } from "@/lib/payments/razorpay";
 
 /**
@@ -51,6 +53,12 @@ export async function POST(request: Request) {
     contact: payment.contact,
     ...(notes && !Array.isArray(notes) ? notes : {}),
   });
+
+  // A paid course for a real student account: make sure access is granted even if the browser never returned.
+  const paid = body.event === "payment.captured" || body.event === "order.paid";
+  if (paid && notes && !Array.isArray(notes) && notes.uid && notes.slug && getProgram(notes.slug)?.course) {
+    await grantEnrollment(notes.uid, notes.slug, notes.ref || String(payment.id ?? order.id ?? ""));
+  }
 
   // Always acknowledge a verified webhook so Razorpay doesn't retry indefinitely.
   return new Response("ok", { status: 200 });

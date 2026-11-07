@@ -1,6 +1,8 @@
 import { z } from "zod";
 import { apiError, apiOk, parseBody } from "@/lib/http";
+import { getProgram } from "@/content/programs";
 import { recordSubmission } from "@/lib/leads";
+import { grantEnrollment } from "@/lib/supabase/server";
 import {
   fetchOrder,
   orderNotes,
@@ -65,6 +67,11 @@ export async function POST(request: Request) {
     amount: amountPaise / 100,
     ...notes,
   });
+
+  // Course bought with a real student account: grant access now (idempotent; the webhook does the same).
+  if (kind === "program" && notes.uid && notes.slug && getProgram(notes.slug)?.course) {
+    await grantEnrollment(notes.uid, notes.slug, reference);
+  }
 
   let redirectTo = `/thank-you?ref=${encodeURIComponent(reference)}`;
   if (kind === "merch") redirectTo = `/order/success?ref=${encodeURIComponent(reference)}`;

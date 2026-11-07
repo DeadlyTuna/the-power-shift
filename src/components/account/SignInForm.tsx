@@ -7,6 +7,7 @@ import { useEffect, useState, type FormEvent } from "react";
 import { toast } from "sonner";
 import { emailField } from "@/lib/validation";
 import { SIGN_UP_PATH, authHref, safeNextPath } from "@/lib/demo-auth/next-path";
+import { isRealAuth } from "@/lib/supabase/env";
 import { Button } from "@/components/ui/Button";
 import { FormAlert, TextField } from "@/components/ui/Field";
 import { PasswordField } from "@/components/ui/PasswordField";
@@ -83,7 +84,7 @@ export function SignInForm() {
     }
 
     setStatus("success");
-    toast.success(`Welcome back, ${firstName(result.student.name)}`);
+    toast.success(result.student ? `Welcome back, ${firstName(result.student.name)}` : "Welcome back");
     router.replace(next);
   }
 
@@ -176,9 +177,20 @@ export function SignInForm() {
                   Create an account
                 </Link>
               </p>
-              <p className="text-sm text-muted">
-                Forgot your password? Demo accounts can&rsquo;t be recovered, so create a new one with a different email.
-              </p>
+              {isRealAuth ? (
+                <p className="text-sm text-muted">
+                  <Link
+                    href="/account/forgot-password"
+                    className="font-semibold text-jamun-900 underline decoration-marigold-400 decoration-2 underline-offset-4 hover:decoration-jamun-900"
+                  >
+                    Forgot your password?
+                  </Link>
+                </p>
+              ) : (
+                <p className="text-sm text-muted">
+                  Forgot your password? Demo accounts can&rsquo;t be recovered, so create a new one with a different email.
+                </p>
+              )}
             </div>
           </form>
         </motion.div>

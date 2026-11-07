@@ -386,3 +386,20 @@ Do this when the new site is tested. Keep the WordPress hosting running until th
    - Set the Razorpay webhook URL to the live domain (section 3.2) and update the website URL in Razorpay if it changed.
    - Update ad and bio links to the new addresses (old ones keep redirecting, but direct links are faster).
    - Cancel the WordPress hosting once everything has run smoothly for a few weeks.
+
+## Student accounts (course sign-in)
+
+The course area (`/account`, `/courses`) supports two modes:
+
+- **Demo (default).** No setup. Accounts live only in the visitor's browser, nothing syncs between devices, and the sign-in pages say so. Fine for showing the client; not for real students.
+- **Real accounts on Supabase.** Email + password sign-in, password reset by email, and enrollments and lesson progress stored in Postgres so students can log in from any device.
+
+To switch to real accounts:
+
+1. Create a project at [supabase.com](https://supabase.com) (the free tier is enough to start). Choose the Mumbai region for Indian students.
+2. In **SQL Editor**, run `supabase/migrations/0001_student_accounts.sql`. It creates `profiles`, `enrollments` and `lesson_progress` with Row Level Security: students can only read their own rows, and only the website's server can grant course access.
+3. In **Authentication → URL Configuration**, set the Site URL to `https://itzmanisha.com` and add `https://itzmanisha.com/account` and `https://itzmanisha.com/account/update-password` to the redirect URLs (add the `http://localhost:3000` equivalents for local testing).
+4. Optional but recommended: in **Authentication → Emails**, set up custom SMTP (e.g. Resend or Zoho) so confirmation and reset emails come from your domain; Supabase's built-in sender is rate-limited.
+5. Set `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY` and `SUPABASE_SERVICE_ROLE_KEY` (Project Settings → API) in your host and redeploy. The demo notices disappear and "Forgot your password?" starts working.
+
+How course access is granted: when a signed-in student pays with Razorpay, their user id is attached to the order; `/api/payments/verify` (and the webhook, as a backstop) checks the payment signature and only then writes the enrollment with the service-role key. In demo checkout (mock courses while Razorpay isn't configured) `/api/courses/enroll` grants access because nothing is charged. Accounts created in demo mode don't carry over.

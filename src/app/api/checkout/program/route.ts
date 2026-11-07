@@ -6,6 +6,8 @@ import { formatEventTime, formatShortDate, toPaise } from "@/lib/format";
 import { apiError, apiOk, parseBody } from "@/lib/http";
 import { recordSubmission, SAVE_FAILED_MESSAGE } from "@/lib/leads";
 import { createOrder, paymentsConfigured, publicKeyId, sanitizeNotes, type CheckoutSession } from "@/lib/payments/razorpay";
+import { isRealAuth } from "@/lib/supabase/env";
+import { currentUser } from "@/lib/supabase/server";
 import { contactBase, isBot } from "@/lib/validation";
 
 /**
@@ -83,6 +85,12 @@ export async function POST(request: Request) {
     return apiError(503, NO_PAYMENT_MESSAGE);
   }
 
+  // With real student accounts, a course is tied to the signed-in student who pays for it.
+  const student = program.course && isRealAuth ? await currentUser() : null;
+  if (program.course && isRealAuth && !student) {
+    return apiError(401, "Sign in to your student account to enroll, then try again.");
+  }
+
   const reference = newReference(program);
   const lead = {
     program: program.slug,
@@ -99,6 +107,7 @@ export async function POST(request: Request) {
     phone: data.phone,
     consent: data.consent,
     source: data.source ?? "",
+    studentId: student?.id ?? "",
   };
 
   if (paymentsConfigured()) {
@@ -116,6 +125,8 @@ export async function POST(request: Request) {
           email: data.email,
           phone: data.phone,
           source: data.source,
+          // The verify route and webhook grant course access to this student once the payment is confirmed.
+          uid: student?.id,
         }),
       });
       orderId = order.id;

@@ -10,6 +10,7 @@ import { z } from "zod";
 import { site } from "@/content/site";
 import { emailField, fieldErrors, nameField, phoneField } from "@/lib/validation";
 import { MIN_PASSWORD_LENGTH } from "@/lib/demo-auth/store";
+import { isRealAuth } from "@/lib/supabase/env";
 import { SIGN_IN_PATH, authHref, safeNextPath } from "@/lib/demo-auth/next-path";
 import { Button } from "@/components/ui/Button";
 import { CheckboxField, FormAlert, TextField } from "@/components/ui/Field";
@@ -28,7 +29,7 @@ const details = z.object({
   name: nameField,
   email: emailField,
   phone: phoneField,
-  consent: z.literal(true, { error: "Tick this box to create your demo account" }),
+  consent: z.literal(true, { error: isRealAuth ? "Tick this box to create your account" : "Tick this box to create your demo account" }),
 });
 
 const fade = {
@@ -45,7 +46,8 @@ export function SignUpForm() {
   const router = useRouter();
   const next = safeNextPath(useSearchParams().get("next"));
   const { ready, student, signUp } = useStudent();
-  const [status, setStatus] = useState<"idle" | "pending" | "success">("idle");
+  const [status, setStatus] = useState<"idle" | "pending" | "success" | "confirm">("idle");
+  const [confirmEmail, setConfirmEmail] = useState("");
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [formError, setFormError] = useState<{ title: string; message: string; signInLink?: boolean } | null>(null);
   const [password, setPassword] = useState("");
@@ -103,6 +105,11 @@ export function SignUpForm() {
       return;
     }
 
+    if (result.confirmEmail) {
+      setConfirmEmail(result.email);
+      setStatus("confirm");
+      return;
+    }
     setStatus("success");
     toast.success(`Account created. Welcome, ${firstName(result.student.name)}!`);
     router.replace(next);
@@ -110,7 +117,9 @@ export function SignUpForm() {
 
   const view = !ready
     ? "loading"
-    : status === "success"
+    : status === "confirm"
+      ? "confirm"
+      : status === "success"
       ? "success"
       : status === "idle" && student
         ? "signed-in"
@@ -123,6 +132,20 @@ export function SignUpForm() {
       {view === "loading" ? (
         <motion.div key="loading" {...fade}>
           <AuthSkeleton title={TITLE} intro={INTRO} />
+        </motion.div>
+      ) : view === "confirm" ? (
+        <motion.div key="confirm" {...fade}>
+          <div role="status" className="flex flex-col gap-4">
+            <AuthHeading id={`${ID}-confirm`} title="Check your email" />
+            <p className="text-ink">
+              We&apos;ve sent a confirmation link to <strong className="font-semibold">{confirmEmail}</strong>. Open it to
+              activate your account, then sign in.
+            </p>
+            <p className="text-[0.9375rem] text-muted">Can&apos;t see it? Check your spam or promotions folder.</p>
+            <Link href={authHref(SIGN_IN_PATH, next)} className={linkClass}>
+              Go to sign in
+            </Link>
+          </div>
         </motion.div>
       ) : view === "success" ? (
         <motion.div key="success" {...fade}>
@@ -242,7 +265,7 @@ export function SignUpForm() {
               error={errors.consent}
               label={
                 <>
-                  I understand this demo account is saved only in this browser, and I agree to the{" "}
+                  {isRealAuth ? "I agree to the " : "I understand this demo account is saved only in this browser, and I agree to the "}
                   <Link href="/terms" className={linkClass}>
                     terms
                   </Link>{" "}

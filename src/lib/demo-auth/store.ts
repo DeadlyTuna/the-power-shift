@@ -160,7 +160,11 @@ export function getServerSnapshot(): Snapshot {
 
 /* ---------- actions ---------- */
 
-export type AuthResult = { ok: true; student: Student } | { ok: false; error: string; field?: "email" | "password" };
+export type AuthResult =
+  | { ok: true; student: Student; confirmEmail?: false }
+  // Real accounts only: the account exists but the student must confirm their email before signing in.
+  | { ok: true; student: null; confirmEmail: true; email: string }
+  | { ok: false; error: string; field?: "email" | "password" };
 
 export async function signUp(input: { name: string; email: string; phone: string; password: string }): Promise<AuthResult> {
   const email = normaliseEmail(input.email);

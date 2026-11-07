@@ -83,3 +83,9 @@ On the live domain, on a phone. For each one, check: the confirmation screen, a 
 - [ ] Link previews: paste the home page and a few inner pages into WhatsApp and Facebook's Sharing Debugger. Each should show the right title, description and the social image.
 - [ ] Meta ad and Instagram/WhatsApp bio links point at the new pages.
 - [ ] A quick pass on a real phone: every page loads, no sideways scrolling, buttons easy to tap, the WhatsApp button works.
+
+## Student accounts
+
+- [ ] Decide: keep demo accounts for the client preview, or switch to real Supabase accounts (docs/SETUP.md, "Student accounts")
+- [ ] If real: run supabase/migrations/0001_student_accounts.sql, set the three SUPABASE env vars, configure redirect URLs and custom SMTP
+- [ ] Test end to end: sign up, confirm email, sign in, reset password, buy a course with Razorpay test keys, check it appears in My courses on a second device

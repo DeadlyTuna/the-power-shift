@@ -8,6 +8,7 @@ import { StaggerList, StaggerListItem } from "@/components/motion/Stagger";
 import { Card, Section } from "@/components/ui/Layout";
 import { Reframe } from "@/components/ui/Reframe";
 import { cn } from "@/lib/cn";
+import { isRealAuth } from "@/lib/supabase/env";
 
 /**
  * Building blocks for the demo sign-in and create-account pages: a calm
@@ -65,8 +66,9 @@ export function AuthHeading({
   );
 }
 
-/** The plain-language notice that this is a browser-only demo. */
+/** The plain-language notice that this is a browser-only demo (hidden once real accounts are configured). */
 export function DemoNote({ className }: { className?: string }) {
+  if (isRealAuth) return null;
   return (
     <div
       className={cn(

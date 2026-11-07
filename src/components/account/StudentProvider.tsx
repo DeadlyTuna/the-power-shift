@@ -1,11 +1,21 @@
 "use client";
 
 import { useCallback, useSyncExternalStore } from "react";
-import * as store from "@/lib/demo-auth/store";
+import * as demoStore from "@/lib/demo-auth/store";
 import type { Enrollment, Student } from "@/lib/demo-auth/store";
+import * as supabaseStore from "@/lib/auth/supabase-store";
+import { authMode } from "@/lib/supabase/env";
+
+/** Real Supabase accounts when configured, otherwise the browser-only demo. */
+const store = authMode === "supabase" ? supabaseStore : demoStore;
+
+/** "supabase" (real accounts) or "demo" (browser-only); decided at build time from env vars. */
+export { authMode };
 
 /**
- * React bindings for the DEMO student accounts in src/lib/demo-auth/store.ts.
+ * React bindings for student accounts: real Supabase accounts
+ * (src/lib/auth/supabase-store.ts) when NEXT_PUBLIC_SUPABASE_URL is set,
+ * otherwise the browser-only demo (src/lib/demo-auth/store.ts).
  * The store is a module-level singleton synced through localStorage, so no
  * context provider is needed; these hooks can be used in any client component.
  *
