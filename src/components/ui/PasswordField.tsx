@@ -25,10 +25,6 @@ import { FieldShell, fieldIds } from "./Field";
  * keyboard users stay on the button.
  */
 
-// Keep in step with `control` in ./Field.tsx.
-const control =
-  "block w-full rounded-xl border border-line bg-white px-4 py-3 text-[1.0625rem] text-ink placeholder:text-muted/70 transition-colors hover:border-jamun-200 focus:border-jamun-700 focus:ring-4 focus:ring-marigold-300/60 focus:outline-none aria-[invalid=true]:border-kumkum";
-
 export type PasswordStrength = {
   level: 1 | 2 | 3;
   label: "Weak" | "Okay" | "Strong";
@@ -153,7 +149,19 @@ export function PasswordField({
     <FieldShell id={id} label={label} hint={hint} error={error} optional={optional} className={wrapperClassName}>
       {/* One wrapper, so the optional extras below don't add gaps to the field when they're empty. */}
       <div>
-        <div className="relative">
+        {/*
+          The border lives on this wrapper, with the input and the eye button side by side inside it.
+          Password managers (Edge, Bitwarden, LastPass, Dashlane…) inject their icon at the right edge
+          of the <input> itself; because the input ends before the button, those icons can't cover it.
+        */}
+        <div
+          className={cn(
+            "flex items-center rounded-xl border border-line bg-white transition-colors hover:border-jamun-200",
+            "focus-within:border-jamun-700 focus-within:ring-4 focus-within:ring-marigold-300/60",
+            error && "border-kumkum hover:border-kumkum",
+            className,
+          )}
+        >
           <input
             ref={inputRef}
             id={id}
@@ -166,7 +174,7 @@ export function PasswordField({
             aria-invalid={error ? true : undefined}
             aria-describedby={ariaDescribedBy}
             required={!optional}
-            className={cn(control, "pr-14 [&::-ms-clear]:hidden [&::-ms-reveal]:hidden", className)}
+            className="min-w-0 flex-1 rounded-xl border-0 bg-transparent py-3 pr-2 pl-4 text-[1.0625rem] text-ink placeholder:text-muted/70 focus:shadow-none focus:outline-none [&::-ms-clear]:hidden [&::-ms-reveal]:hidden"
             value={value}
             defaultValue={value === undefined ? defaultValue : undefined}
             onChange={(event: ChangeEvent<HTMLInputElement>) => {
@@ -196,7 +204,7 @@ export function PasswordField({
             onMouseDown={(event) => event.preventDefault()}
             onClick={toggleVisible}
             whileTap={{ scale: 0.88 }}
-            className="absolute inset-y-0 right-1 my-auto inline-flex size-11 items-center justify-center rounded-full text-muted transition-colors hover:bg-mist hover:text-jamun-900"
+            className="mr-1 inline-flex size-11 shrink-0 items-center justify-center rounded-full text-muted transition-colors hover:bg-mist hover:text-jamun-900"
           >
             <AnimatePresence mode="popLayout" initial={false}>
               <motion.span
