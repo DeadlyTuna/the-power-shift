@@ -9,9 +9,19 @@
 -- role key, after a verified payment, so nobody can grant themselves a course
 -- from the browser.
 
--- ---------- Guard: stop with a clear message if an unrelated table is in the way ----------
+-- ---------- Guard: only for an EMPTY project ----------
+-- This script creates its own profiles/enrollments/progress tables and a sign-up trigger.
+-- It must never run on a project that already has a course platform (courses, purchases,
+-- lesson_progress, profiles with roles…): that project's own schema should be used instead.
 do $$
 begin
+  if to_regclass('public.courses') is not null or to_regclass('public.purchases') is not null then
+    raise exception 'This Supabase project already has a course platform (public.courses / public.purchases). Do not run this script here; the website should use that existing schema instead.';
+  end if;
+  if exists (select 1 from information_schema.columns
+             where table_schema = 'public' and table_name = 'profiles' and column_name = 'role') then
+    raise exception 'public.profiles already exists with roles. Do not run this script here: its profile policies would let users edit their own role.';
+  end if;
   if exists (select 1 from information_schema.tables where table_schema = 'public' and table_name = 'lesson_progress')
      and not exists (select 1 from information_schema.columns
                      where table_schema = 'public' and table_name = 'lesson_progress' and column_name = 'course_slug') then
