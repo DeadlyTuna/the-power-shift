@@ -1,0 +1,318 @@
+@import "tailwindcss";
+@import "tw-animate-css";
+
+/* Light-only site: "dark:" utilities (used by some kit components) only apply under an explicit .dark class, never the OS setting. */
+@custom-variant dark (&:is(.dark *));
+
+/*
+ * The Power Shift design tokens.
+ * Palette: jamun (deep plum ink), marigold (accent), peacock (positive),
+ * kumkum (the strike in the signature reframe), lilac-white paper.
+ */
+@theme {
+  --color-jamun-950: #1c0e25;
+  --color-jamun-900: #2a1636;
+  --color-jamun-800: #3a2149;
+  --color-jamun-700: #4e2f61;
+  --color-jamun-200: #d9cde3;
+  --color-jamun-100: #ebe3f1;
+
+  --color-ink: #33263d;
+  --color-muted: #6b5e76;
+  --color-paper: #f7f4fa;
+  --color-mist: #eee8f4;
+  --color-line: #e2d9ea;
+
+  --color-marigold-200: #fbe3b8;
+  --color-marigold-300: #f7c87a;
+  --color-marigold-400: #f2a93b;
+  --color-marigold-500: #e0941f;
+  --color-marigold-700: #8f5a06;
+
+  --color-peacock-50: #e3f2f0;
+  --color-peacock-600: #0e6b6b;
+  --color-peacock-700: #0a5555;
+
+  --color-kumkum: #c8423a;
+  --color-kumkum-50: #fbe9e7;
+
+  --radius-card: 1.125rem;
+
+  /*
+   * shadcn/ui token names used by the kit components in src/components/kit,
+   * mapped onto the palette above. ("muted" stays our secondary text colour;
+   * kit components use bg-mist where shadcn would use bg-muted.)
+   */
+  --color-background: #ffffff;
+  --color-foreground: #33263d;
+  --color-card: #ffffff;
+  --color-card-foreground: #33263d;
+  --color-popover: #ffffff;
+  --color-popover-foreground: #33263d;
+  --color-primary: #2a1636;
+  --color-primary-foreground: #ffffff;
+  --color-secondary: #eee8f4;
+  --color-secondary-foreground: #2a1636;
+  --color-accent: #eee8f4;
+  --color-accent-foreground: #2a1636;
+  --color-muted-foreground: #6b5e76;
+  --color-destructive: #c8423a;
+  --color-border: #e2d9ea;
+  --color-input: #e2d9ea;
+  --color-ring: #f2a93b;
+
+  --ease-shift: cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+@theme {
+  --font-display: "Rozha One", Georgia, serif;
+  --font-sans: "Mukta", system-ui, sans-serif;
+  --font-hand: "Kalam", "Comic Sans MS", cursive;
+}
+
+/* ---------- Type scale ---------- */
+
+@utility display-xl {
+  font-family: var(--font-display);
+  font-weight: 400;
+  font-size: clamp(2.75rem, 6.2vw, 5.75rem);
+  line-height: 0.98;
+  letter-spacing: -0.012em;
+}
+
+@utility display-lg {
+  font-family: var(--font-display);
+  font-weight: 400;
+  font-size: clamp(2.125rem, 4.4vw, 3.75rem);
+  line-height: 1.04;
+  letter-spacing: -0.008em;
+}
+
+@utility display-md {
+  font-family: var(--font-display);
+  font-weight: 400;
+  font-size: clamp(1.625rem, 2.8vw, 2.375rem);
+  line-height: 1.12;
+}
+
+@utility display-sm {
+  font-family: var(--font-display);
+  font-weight: 400;
+  font-size: 1.5rem;
+  line-height: 1.2;
+}
+
+@utility eyebrow {
+  font-family: var(--font-sans);
+  font-weight: 600;
+  font-size: 0.8125rem;
+  line-height: 1.2;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+}
+
+@utility lede {
+  font-size: clamp(1.125rem, 1.6vw, 1.3125rem);
+  line-height: 1.55;
+}
+
+@utility hand {
+  font-family: var(--font-hand);
+  font-weight: 400;
+}
+
+/* ---------- Base ---------- */
+
+@layer base {
+  html {
+    -webkit-text-size-adjust: 100%;
+    scroll-padding-top: 5.5rem;
+  }
+
+  body {
+    background: var(--color-paper);
+    color: var(--color-ink);
+    font-family: var(--font-sans);
+    font-size: 1.0625rem;
+    line-height: 1.6;
+    text-rendering: optimizeLegibility;
+  }
+
+  h1,
+  h2,
+  h3,
+  h4 {
+    color: var(--color-jamun-900);
+    text-wrap: balance;
+  }
+
+  p {
+    text-wrap: pretty;
+  }
+
+  ::selection {
+    background: var(--color-marigold-300);
+    color: var(--color-jamun-950);
+  }
+
+  :focus-visible {
+    outline: 2px solid var(--color-jamun-900);
+    outline-offset: 2px;
+    box-shadow: 0 0 0 5px var(--color-marigold-400);
+    border-radius: 4px;
+  }
+
+  /* Kit components (shadcn/ui) use bare "border"; give them the palette's line colour. */
+  [data-slot] {
+    border-color: var(--color-border);
+  }
+
+  [data-tone="jamun"] :is(h1, h2, h3, h4) {
+    color: #fff;
+  }
+
+  [data-tone="jamun"] :focus-visible {
+    outline-color: var(--color-marigold-300);
+    box-shadow: none;
+  }
+}
+
+/* ---------- Signature: the reframe ---------- */
+
+/*
+ * A limiting script gets struck through with a kumkum marker, then the
+ * reframe is written in by hand. The strike is a background gradient on an
+ * inline element so it sweeps across line wraps.
+ *
+ * Without JS (no .js class on <html>) both lines show their final state.
+ */
+.reframe-strike {
+  text-decoration: none;
+  background-image: linear-gradient(var(--color-kumkum), var(--color-kumkum));
+  background-repeat: no-repeat;
+  background-position: 0 58%;
+  background-size: 100% 0.12em;
+  color: color-mix(in srgb, currentColor 66%, transparent);
+  transition:
+    background-size 650ms var(--ease-shift),
+    color 400ms ease 450ms;
+}
+
+.js .reframe-strike[data-struck="false"] {
+  background-size: 0% 0.12em;
+  color: inherit;
+  transition: none;
+}
+
+.reframe-write {
+  clip-path: inset(-0.2em -0.2em -0.3em -0.2em);
+  transition: clip-path 900ms var(--ease-shift) 550ms;
+}
+
+.js .reframe-write[data-written="false"] {
+  clip-path: inset(-0.2em 100% -0.3em -0.2em);
+  transition: none;
+}
+
+/* Motion entrances (src/components/motion) start hidden; without JS, show everything. */
+html:not(.js) [data-reveal] {
+  opacity: 1 !important;
+  transform: none !important;
+  filter: none !important;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    transition-delay: 0ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+@media print {
+  [data-print="hide"] {
+    display: none !important;
+  }
+
+  body {
+    background: #fff;
+  }
+}
+
+/* ---------- Kit animations (Magic UI marquee, shiny text, ripple, shimmer button) ---------- */
+
+@theme inline {
+  --animate-marquee: marquee var(--duration) infinite linear;
+  --animate-marquee-vertical: marquee-vertical var(--duration) linear infinite;
+  --animate-shiny-text: shiny-text 8s infinite;
+  --animate-ripple: ripple var(--duration, 2s) ease calc(var(--i, 0) * 0.2s) infinite;
+  --animate-shimmer-slide: shimmer-slide var(--speed) ease-in-out infinite alternate;
+  --animate-spin-around: spin-around calc(var(--speed) * 2) infinite linear;
+
+  @keyframes marquee {
+    from {
+      transform: translateX(0);
+    }
+    to {
+      transform: translateX(calc(-100% - var(--gap)));
+    }
+  }
+
+  @keyframes marquee-vertical {
+    from {
+      transform: translateY(0);
+    }
+    to {
+      transform: translateY(calc(-100% - var(--gap)));
+    }
+  }
+
+  @keyframes shiny-text {
+    0%,
+    90%,
+    100% {
+      background-position: calc(-100% - var(--shiny-width)) 0;
+    }
+    30%,
+    60% {
+      background-position: calc(100% + var(--shiny-width)) 0;
+    }
+  }
+
+  @keyframes ripple {
+    0%,
+    100% {
+      transform: translate(-50%, -50%) scale(1);
+    }
+    50% {
+      transform: translate(-50%, -50%) scale(0.9);
+    }
+  }
+
+  @keyframes shimmer-slide {
+    to {
+      transform: translate(calc(100cqw - 100%), 0);
+    }
+  }
+
+  @keyframes spin-around {
+    0% {
+      transform: translateZ(0) rotate(0);
+    }
+    15%,
+    35% {
+      transform: translateZ(0) rotate(90deg);
+    }
+    65%,
+    85% {
+      transform: translateZ(0) rotate(270deg);
+    }
+    100% {
+      transform: translateZ(0) rotate(360deg);
+    }
+  }
+}
