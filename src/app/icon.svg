@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" width="32" height="32">
+  <title>The Power Shift</title>
+  <rect width="32" height="32" rx="8" fill="#2a1636"/>
+  <g fill="none" stroke="#f2a93b" stroke-width="3.4" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M7.5 22.5h7l9-11.5"/>
+    <path d="M18.5 10.5h5.5v5.5"/>
+  </g>
+</svg>
